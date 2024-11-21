@@ -23,50 +23,45 @@ resource "random_id" "resource_name_suffix" {
   byte_length = 4
 }
 
-data "template_file" "mc_run_py" {
-  template = file("${path.module}/mc_run.tpl.py")
-  vars = {
-    project_id   = var.project_id
-    topic_id     = var.topic_id
-    topic_schema = var.topic_schema
-    dataset_id   = var.dataset_id
-    table_id     = var.table_id
-  }
-}
-
 resource "google_storage_bucket_object" "mc_run" {
-  name    = "mc_run.py"
-  content = data.template_file.mc_run_py.rendered
-  bucket  = local.bucket
-}
-
-data "template_file" "mc_run_yaml" {
-  template = file("${path.module}/mc_run.tpl.yaml")
-  vars = {
-    project_id  = var.project_id
-    bucket_name = local.bucket
-    region      = var.region
-  }
+  name = "mc_run.py"
+  content = templatefile(
+    "${path.module}/mc_run.tpl.py",
+    {
+      project_id   = var.project_id
+      topic_id     = var.topic_id
+      topic_schema = var.topic_schema
+      dataset_id   = var.dataset_id
+      table_id     = var.table_id
+    }
+  )
+  bucket = local.bucket
 }
 
 resource "google_storage_bucket_object" "mc_obj_yaml" {
-  name    = "mc_run.yaml"
-  content = data.template_file.mc_run_yaml.rendered
-  bucket  = local.bucket
+  name = "mc_run.yaml"
+  content = templatefile(
+    "${path.module}/mc_run.tpl.py",
+    {
+      project_id  = var.project_id
+      bucket_name = local.bucket
+      region      = var.region
+    }
+  )
+  bucket = local.bucket
 }
 
-data "template_file" "ipynb_fsi" {
-  template = file("${path.module}/FSI_MonteCarlo.ipynb")
-  vars = {
-    project_id = var.project_id
-    dataset_id = var.dataset_id
-    table_id   = var.table_id
-  }
-}
 resource "google_storage_bucket_object" "ipynb_obj_fsi" {
-  name    = "FSI_MonteCarlo.ipynb"
-  content = data.template_file.ipynb_fsi.rendered
-  bucket  = local.bucket
+  name = "FSI_MonteCarlo.ipynb"
+  content = templatefile(
+    "${path.module}/FSI_MonteCarlo.ipynb",
+    {
+      project_id = var.project_id
+      dataset_id = var.dataset_id
+      table_id   = var.table_id
+    }
+  )
+  bucket = local.bucket
 }
 
 data "http" "batch_py" {
